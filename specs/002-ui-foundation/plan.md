@@ -151,6 +151,57 @@ yang membedakannya — seluruh halaman bagian berbagi satu app shell, sedangkan 
 4. Fixture wajib memuat varian ekstrem — teks sangat panjang, tanpa gambar, daftar kosong —
    agar rancangannya tidak hanya benar untuk data yang rapi.
 
+### Utang fixture terhitung (T120, 2026-09-10)
+
+Sembilan halaman masih menyusun view model-nya dari fixture:
+
+```text
+app/(app)/page.tsx              (Home + Our Time + Important Dates + Our Future + Just For Us)
+app/(app)/story/page.tsx
+app/(app)/memories/page.tsx
+app/(app)/letters/page.tsx
+app/(app)/open-when/page.tsx
+app/(app)/trips/page.tsx
+app/(app)/trips/[id]/page.tsx   (Trip + Itinerary + Budget + Checklist)
+app/(app)/places/page.tsx
+app/(app)/soundtrack/page.tsx
+```
+
+Angka ini turun satu per satu seiring spec domainnya mendarat. Perintah penghitungnya ada pada
+`quickstart.md`; jalankan ulang setiap kali sebuah domain disambungkan ke data sungguhan.
+
+**Yang membatasi utangnya**: tidak satu pun komponen bagian mengambil data sendiri — diverifikasi
+T119 dan bersih. Karena itu penyambungan kelak hanya mengubah penyusun view model di halaman.
+
+### Anggaran landing page (T121, 2026-09-10)
+
+Landing page merender sembilan komponen bagian, dan hanya **satu** di antaranya komponen client
+(`components/just-for-us/JustForUs.tsx`, karena pilihan permainannya interaktif). Delapan sisanya
+Server Component. Tidak ada section yang perlu dipindahkan ke pemuatan bertahap untuk saat ini.
+
+Angka ini perlu diukur ulang ketika section-nya disambungkan ke data sungguhan, karena saat itulah
+jumlah query — bukan jumlah komponen — yang menjadi penentu.
+
+## Audit Pola Terlarang (T116, 2026-09-10)
+
+Seluruh layar diperiksa terhadap daftar pada FR-028. **Tidak ada satu pun pola terlarang yang
+dipakai**, sehingga tidak ada pengecualian yang perlu dijustifikasi:
+
+| Pola | Hasil |
+|---|---|
+| Glassmorphism | tidak dipakai |
+| Gradient | tidak dipakai |
+| Tabel data padat | tidak dipakai |
+| Grafik | tidak dipakai |
+| Bayangan berat | tidak dipakai; hanya `shadow-soft` dan `shadow-lifted` |
+| Deretan kartu angka | tidak dipakai; angka selalu disajikan dalam kalimat (FR-029) |
+| Gamifikasi bersaing | tidak dipakai; Just For Us tanpa skor maupun papan peringkat |
+| Warna neon | tidak dipakai; palet hangat bernada rendah |
+
+Anggaran perjalanan adalah tempat yang paling rawan menjadi dasbor keuangan. Ia sengaja dibangun
+sebagai satu kalimat berisi berapa yang sudah terpakai, satu penanda kemajuan, lalu daftar
+sederhana — tanpa grafik lingkaran maupun persentase yang bertebaran.
+
 ## Catatan untuk `/speckit-tasks`
 
 1. **Urutannya penting.** Token dan komponen dasar mendahului segalanya; kerangka aplikasi dan

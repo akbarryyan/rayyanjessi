@@ -22,10 +22,11 @@ test.describe("tautan ke section landing page", () => {
     // Section-nya benar-benar berada di dalam layar setelah dituju.
     // Tidak dituntut menempel ke puncak: ketika halaman lebih pendek dari
     // yang dibutuhkan, peramban memang berhenti di batas gulir maksimum.
-    const box = (await section.boundingBox())!;
-    const viewport = page.viewportSize()!;
-    expect(box.y).toBeGreaterThanOrEqual(0);
-    expect(box.y).toBeLessThan(viewport.height);
+    //
+    // toBeInViewport mencoba ulang sampai tata letak mapan — mengukur
+    // boundingBox sekali membuat pemeriksaannya rapuh, karena gulir menuju
+    // anchor bisa belum selesai ketika huruf dan gambar masih dimuat.
+    await expect(section).toBeInViewport();
   });
 
   test("di puncak halaman, yang aktif adalah Beranda dan bukan section", async ({ page }) => {

@@ -1,9 +1,20 @@
+import { FutureList } from "@/components/future/FutureList";
 import { HomeHero } from "@/components/home/HomeHero";
+import { ImportantDates } from "@/components/important-dates/ImportantDates";
+import { JustForUs } from "@/components/just-for-us/JustForUs";
+import { OurTime } from "@/components/time/OurTime";
 import { LatestLetterCard } from "@/components/home/LatestLetterCard";
 import { RecentMemories } from "@/components/home/RecentMemories";
 import { UpcomingTripCard } from "@/components/home/UpcomingTripCard";
 import { LandingSection } from "@/components/layout/LandingSection";
+import {
+  futureFixtures,
+  importantDatesFixtures,
+  justForUsFixtures,
+  ourTimeFixtures,
+} from "@/lib/fixtures/collections";
 import { homeFixtures } from "@/lib/fixtures/home";
+import { resolveVariant } from "@/lib/fixtures/variant";
 import type { FixtureSet } from "@/lib/fixtures";
 import type { HomeViewModel } from "@/lib/view-models/home";
 
@@ -29,12 +40,7 @@ export default async function LandingPage({
   searchParams: Promise<{ variant?: string }>;
 }) {
   const { variant } = await searchParams;
-  const key = (
-    ["typical", "longText", "noImages", "empty"] as const
-  ).includes(variant as never)
-    ? (variant as keyof FixtureSet<HomeViewModel>)
-    : "typical";
-
+  const key = resolveVariant(variant);
   const vm = buildHomeViewModel(key);
 
   return (
@@ -64,25 +70,33 @@ export default async function LandingPage({
         id="our-time"
         title="Waktu kita"
         lede="Sudah sejauh ini kita berjalan bersama."
-      />
+      >
+        <OurTime vm={ourTimeFixtures[key]} />
+      </LandingSection>
 
       <LandingSection
         id="important-dates"
         title="Tanggal penting"
         lede="Hari-hari yang tidak boleh terlewat begitu saja."
-      />
+      >
+        <ImportantDates vm={importantDatesFixtures[key]} />
+      </LandingSection>
 
       <LandingSection
         id="future"
         title="Nanti"
         lede="Hal-hal yang belum kita lakukan, tapi ingin."
-      />
+      >
+        <FutureList data={futureFixtures[key].items} />
+      </LandingSection>
 
       <LandingSection
         id="just-for-us"
         title="Cuma kita"
         lede="Sudut kecil yang cuma milik kita berdua."
-      />
+      >
+        <JustForUs vm={justForUsFixtures[key]} />
+      </LandingSection>
     </div>
   );
 }

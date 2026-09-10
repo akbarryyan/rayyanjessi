@@ -38,35 +38,39 @@ akhir. Menundanya berarti menemukan 16 masalah sekaligus di atas pola yang terla
 
 ## Status Implementasi (2026-09-10)
 
-**Selesai dan terverifikasi**: 75 dari 123 task — Phase 1, 2 (fondasi), US1 (sistem desain),
-US2 (navigasi), US3 (pola halaman), US4 (keadaan antarmuka), US5 (gerak, kecuali T062),
-US6 (perkakas aksesibilitas dan responsif), serta bagian Home pada US7.
+**Selesai dan terverifikasi**: 122 dari 123 task.
 
-**Belum dikerjakan**: 48 task — US7 sisa (40 dari 43), T062, dan Polish (7).
+**Tersendat**: 1 task — **T112**, menerapkan sistem desain pada halaman Settings milik fitur 001.
+Halaman itu belum ada karena fitur 001 belum diimplementasikan. Ini penghalang nyata, bukan
+kelalaian.
 
-### Gerbang kualitas saat ini
+### Gerbang kualitas
 
-`npm run lint`, `npx tsc --noEmit`, `npm run build`, `npx vitest run` (36 lolos),
-`npx playwright test` (50 lolos), dan `npm run check:tokens` seluruhnya bersih.
+| Perintah | Hasil |
+|---|---|
+| `npm run lint` | bersih |
+| `npx tsc --noEmit` | bersih |
+| `npm run build` | bersih |
+| `npx vitest run` | 36 lolos |
+| `npx playwright test` | 196 lolos |
+| `npm run test:a11y` | 50 lolos |
+| `npm run check:tokens` | bersih |
 
-Cakupan E2E: penelusuran papan ketik dengan pemeriksaan urutan fokus per wilayah, jebakan fokus
-dialog, lebar 320 px tanpa scroll mendatar, ukuran sasaran sentuh, pemindaian aksesibilitas per
-halaman, penanda posisi navigasi, kerangka muat, penanganan kegagalan, preferensi kurangi-gerak,
-ketiadaan animasi saat halaman diam, dan Home pada keempat varian fixture.
+### Laporan validasi
 
-### Pola yang ditetapkan bagian Home, diikuti 15 bagian berikutnya
+[validation-report.md](./validation-report.md) — 18 dari 22 langkah validasi manual terbukti
+otomatis, 4 sisanya butuh penilaian mata (watak bagian, nada kalimat, rasa palet, ritme gerak).
+Nol kegagalan.
 
-1. Tipe view model di `lib/view-models/<domain>.ts`, memakai istilah pasangan bukan istilah
-   database.
-2. Fixture di `lib/fixtures/<domain>.ts` dengan keempat varian: typical, longText, noImages,
-   empty.
-3. Komponen di `components/<domain>/` yang menangani ketiga keadaan `SectionData`
-   (kosong, terisi, gagal) dan tidak pernah mengambil data sendiri.
-4. Halaman menyusun view model dari fixture, dengan `?variant=` agar varian ekstrem dapat diuji.
-5. Berkas E2E `tests/e2e/<domain>.spec.ts` yang menjalankan pembantu responsif dan aksesibilitas
-   pada keempat varian.
+### Utang yang masih berjalan
 
-### Koreksi terhadap rencana, ditemukan saat implementasi
+Sembilan halaman menyusun view model-nya dari fixture. Ini utang yang diterima secara sadar pada
+2026-09-10 dan tercatat pada Complexity Tracking di [plan.md](./plan.md) beserta daftar
+halamannya. Yang membatasinya: tidak satu pun komponen bagian mengambil data sendiri — sudah
+diverifikasi dan bersih — sehingga penyambungan kelak hanya mengubah penyusun view model di
+halaman.
+
+### Dua belas koreksi terhadap rencana, seluruhnya ditemukan karena ada yang gagal
 
 1. **Rute `/_ui` mustahil ada** — folder berawalan garis bawah adalah *private folder* yang
    dikecualikan dari routing. Rutenya menjadi `/ui-kit`.
@@ -74,36 +78,23 @@ ketiadaan animasi saat halaman diam, dan Home pada keempat varian fixture.
    `:root`, dirujuk lewat `duration-(--nama)`.
 3. **`Modal` dan `Drawer` perlu prop `trigger`** — tanpa Radix memiliki hubungan pemicu-dialog,
    fokus tidak kembali ke pemicunya (FR-039).
-4. **Kontras `lineStrong` hanya 1.72:1** terhadap ambang 3:1. Digelapkan menjadi 3.55:1.
+4. **Kontras `lineStrong` hanya 1.72:1** terhadap ambang 3:1. Digelapkan menjadi 3.55:1, bukan
+   ambangnya yang diturunkan.
 5. **`@types/node` masih `^20` padahal Node 24**, memblokir Vitest 5.
 6. **Playwright harus memakai `localhost`, bukan `127.0.0.1`** — Next memblokir aset client dari
    origin yang dianggap asing, sehingga React tidak pernah ter-hydrate.
 7. **Penanda section menyala di puncak halaman** padahal pembaca masih di pembuka.
 8. **"Section terakhir" diambil dari urutan peta navigasi, bukan urutan dokumen.**
-9. **Section terakhir tak pernah mencapai pita pengamatan** di sepertiga atas layar; dasar
-   halaman kini selalu menandainya.
+9. **Section terakhir tak pernah mencapai pita pengamatan** di sepertiga atas layar.
 10. **Pemeriksa urutan fokus tidak memperhitungkan perputaran siklus Tab.**
-11. **Pemeriksa urutan fokus mengasumsikan halaman satu kolom** — pada tata letak bersidebar,
-    urutan maju berlaku di dalam satu wilayah, bukan lintas wilayah.
-12. **Test fokus rapuh** — `.focus()` programatik tidak andal memicu `:focus-visible`; kini
-    menekan Tab sungguhan.
+11. **Pemeriksa urutan fokus mengasumsikan halaman satu kolom** — urutan maju berlaku di dalam
+    satu wilayah, bukan lintas wilayah.
+12. **Halaman rujukan watak bagian sendiri melanggar aturan sasaran sentuh** — tautan variannya
+    terlalu pendek untuk disentuh.
 
-### Penghalang yang masih berdiri
-
-**Fitur 001 belum diimplementasikan.** Tidak ada `prisma/`, `lib/db/`, maupun halaman `settings`.
-
-- **T112** (menerapkan sistem desain pada Settings milik 001) **tidak dapat dikerjakan**.
-- **T062** (animasi penanda centang) menunggu T097 membuat komponen daftar tugas.
-- Tautan navigasi ke `/story`, `/memories`, `/letters`, `/open-when`, `/trips`, `/places`,
-  `/soundtrack`, dan `/settings` masih 404 sampai US7 membuat halamannya.
-- Vitest, Playwright, dan konfigurasinya seharusnya berasal dari 001; dipasang lebih awal di sini.
-
-### Utang fixture yang sedang berjalan
-
-`app/(app)/page.tsx` menyusun view model-nya dari `lib/fixtures/home.ts`. Ini utang yang
-disengaja dan tercatat pada Complexity Tracking di `plan.md`. T120 menghitungnya lewat perintah
-pada `quickstart.md`; angkanya akan naik seiring bagian US7 bertambah, lalu turun ketika spec
-domainnya mendarat.
+Ditambah beberapa penegasan test yang terlalu longgar atau terlalu kaku, seluruhnya dipertajam
+dengan alasannya ditulis di komentar — termasuk satu tabrakan fixture yang sempat terlihat seperti
+kebocoran isi surat, padahal bukan.
 
 ---
 
@@ -250,7 +241,7 @@ interaksi beranimasi dan memastikan semuanya tetap berfungsi.
 - [X] T059 [US5] Terapkan perpindahan antar halaman memakai `<ViewTransition>` React pada `app/(app)/layout.tsx`, sesuai [research.md](./research.md) R-005
 - [X] T060 [P] [US5] Terapkan animasi kemunculan kartu di `components/ui/Card.tsx` memakai token durasi, singkat dan tidak menunda interaksi
 - [X] T061 [P] [US5] Terapkan animasi kemunculan dan hilangnya lapisan pada `components/ui/Modal.tsx` dan `components/ui/Drawer.tsx`
-- [ ] T062 [US5] (menunggu T097) Terapkan animasi penanda centang pada komponen daftar tugas di `components/trips/checklist/`
+- [X] T062 [US5] Terapkan animasi penanda centang pada komponen daftar tugas di `components/trips/checklist/`
 - [X] T063 [US5] Audit seluruh animasi pada `components/` dan pastikan tidak ada yang berjalan terus-menerus tanpa dipicu
 - [X] T064 [P] [US5] Buat E2E di `tests/e2e/reduced-motion.spec.ts` yang menjalankan seluruh interaksi beranimasi dengan preferensi kurangi-gerak menyala dan memastikan tidak ada fungsi yang hilang
 - [X] T065 [P] [US5] Buat E2E di `tests/e2e/no-idle-animation.spec.ts` yang memastikan halaman dalam keadaan diam tidak menjalankan animasi
@@ -302,91 +293,91 @@ Kelompok-kelompok ini saling bebas dan dapat dikerjakan dalam urutan apa pun.
 
 ### Our Story — lini masa editorial (FR-048)
 
-- [ ] T077 [P] [US7] Buat tipe `StoryViewModel` di `lib/view-models/story.ts` berisi daftar peristiwa dengan judul, tanggal, lokasi, deskripsi, gambar sampul, dan jenis, ditambah daftar penyaring; beserta fixture di `lib/fixtures/story.ts` termasuk varian ekstrem
-- [ ] T078 [US7] Buat komponen lini masa dan kartu peristiwa di `components/story/`
-- [ ] T079 [US7] Buat halaman di `app/(app)/story/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T077 [P] [US7] Buat tipe `StoryViewModel` di `lib/view-models/story.ts` berisi daftar peristiwa dengan judul, tanggal, lokasi, deskripsi, gambar sampul, dan jenis, ditambah daftar penyaring; beserta fixture di `lib/fixtures/story.ts` termasuk varian ekstrem
+- [X] T078 [US7] Buat komponen lini masa dan kartu peristiwa di `components/story/`
+- [X] T079 [US7] Buat halaman di `app/(app)/story/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Memories — album foto (FR-049)
 
-- [ ] T080 [P] [US7] Buat tipe `MemoriesViewModel` di `lib/view-models/memories.ts` beserta fixture di `lib/fixtures/memories.ts` termasuk varian tanpa gambar dan daftar kosong
-- [ ] T081 [US7] Buat galeri responsif dan kartu memori di `components/memories/`, dengan pemuatan bertahap agar tetap ringan seiring bertambahnya data
-- [ ] T082 [US7] Buat halaman daftar di `app/(app)/memories/page.tsx` dan halaman detail di `app/(app)/memories/[id]/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T080 [P] [US7] Buat tipe `MemoriesViewModel` di `lib/view-models/memories.ts` beserta fixture di `lib/fixtures/memories.ts` termasuk varian tanpa gambar dan daftar kosong
+- [X] T081 [US7] Buat galeri responsif dan kartu memori di `components/memories/`, dengan pemuatan bertahap agar tetap ringan seiring bertambahnya data
+- [X] T082 [US7] Buat halaman daftar di `app/(app)/memories/page.tsx` dan halaman detail di `app/(app)/memories/[id]/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Letters — surat pribadi (FR-050)
 
-- [ ] T083 [P] [US7] Buat tipe `LettersViewModel` di `lib/view-models/letters.ts` beserta fixture di `lib/fixtures/letters.ts` mencakup keadaan draft, terjadwal, tersedia, dan sudah dibuka
-- [ ] T084 [US7] Buat daftar surat, tampilan baca, dan penulis surat bergaya kertas di `components/letters/`
-- [ ] T085 [US7] Buat halaman daftar di `app/(app)/letters/page.tsx` dan halaman baca di `app/(app)/letters/[id]/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T083 [P] [US7] Buat tipe `LettersViewModel` di `lib/view-models/letters.ts` beserta fixture di `lib/fixtures/letters.ts` mencakup keadaan draft, terjadwal, tersedia, dan sudah dibuka
+- [X] T084 [US7] Buat daftar surat, tampilan baca, dan penulis surat bergaya kertas di `components/letters/`
+- [X] T085 [US7] Buat halaman daftar di `app/(app)/letters/page.tsx` dan halaman baca di `app/(app)/letters/[id]/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Open When — amplop interaktif (FR-051)
 
-- [ ] T086 [P] [US7] Buat tipe `OpenWhenViewModel` di `lib/view-models/open-when.ts` beserta fixture di `lib/fixtures/open-when.ts`
-- [ ] T087 [US7] Buat kartu pemicu dan interaksi amplop di `components/open-when/` memakai Framer Motion, menghormati preferensi kurangi-gerak
-- [ ] T088 [US7] Buat halaman di `app/(app)/open-when/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T086 [P] [US7] Buat tipe `OpenWhenViewModel` di `lib/view-models/open-when.ts` beserta fixture di `lib/fixtures/open-when.ts`
+- [X] T087 [US7] Buat kartu pemicu dan interaksi amplop di `components/open-when/` memakai Framer Motion, menghormati preferensi kurangi-gerak
+- [X] T088 [US7] Buat halaman di `app/(app)/open-when/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Next Trips — jurnal perjalanan (FR-052)
 
-- [ ] T089 [P] [US7] Buat tipe `TripViewModel` di `lib/view-models/trips.ts` beserta fixture di `lib/fixtures/trips.ts` mencakup status direncanakan, berlangsung, selesai, dan dibatalkan
-- [ ] T090 [US7] Buat hero perjalanan dan ringkasan di `components/trips/`, memakai gambar sampul sebagai fokus visual
-- [ ] T091 [US7] Buat halaman daftar di `app/(app)/trips/page.tsx` dan halaman detail di `app/(app)/trips/[id]/page.tsx` dengan navigasi tab yang dapat digulir mendatar di ponsel, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T089 [P] [US7] Buat tipe `TripViewModel` di `lib/view-models/trips.ts` beserta fixture di `lib/fixtures/trips.ts` mencakup status direncanakan, berlangsung, selesai, dan dibatalkan
+- [X] T090 [US7] Buat hero perjalanan dan ringkasan di `components/trips/`, memakai gambar sampul sebagai fokus visual
+- [X] T091 [US7] Buat halaman daftar di `app/(app)/trips/page.tsx` dan halaman detail di `app/(app)/trips/[id]/page.tsx` dengan navigasi tab yang dapat digulir mendatar di ponsel, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Trip Itinerary — lini masa (FR-053)
 
-- [ ] T092 [P] [US7] Buat tipe `ItineraryViewModel` di `lib/view-models/itinerary.ts` beserta fixture di `lib/fixtures/itinerary.ts`
-- [ ] T093 [US7] Buat pemilih hari dan lini masa aktivitas di `components/trips/itinerary/`, lalu sambungkan ke tab pada `app/(app)/trips/[id]/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
+- [X] T092 [P] [US7] Buat tipe `ItineraryViewModel` di `lib/view-models/itinerary.ts` beserta fixture di `lib/fixtures/itinerary.ts`
+- [X] T093 [US7] Buat pemilih hari dan lini masa aktivitas di `components/trips/itinerary/`, lalu sambungkan ke tab pada `app/(app)/trips/[id]/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
 
 ### Trip Budget — catatan keuangan sederhana (FR-054)
 
-- [ ] T094 [P] [US7] Buat tipe `BudgetViewModel` di `lib/view-models/budget.ts` beserta fixture di `lib/fixtures/budget.ts` mencakup kasus tanpa batas anggaran
-- [ ] T095 [US7] Buat ringkasan anggaran, penanda kemajuan, dan rincian kategori di `components/trips/budget/` tanpa gaya dasbor keuangan, lalu sambungkan ke tab dan jalankan pembantu responsif dan aksesibilitas
+- [X] T094 [P] [US7] Buat tipe `BudgetViewModel` di `lib/view-models/budget.ts` beserta fixture di `lib/fixtures/budget.ts` mencakup kasus tanpa batas anggaran
+- [X] T095 [US7] Buat ringkasan anggaran, penanda kemajuan, dan rincian kategori di `components/trips/budget/` tanpa gaya dasbor keuangan, lalu sambungkan ke tab dan jalankan pembantu responsif dan aksesibilitas
 
 ### Trip Checklist — daftar tugas ringkas (FR-055)
 
-- [ ] T096 [P] [US7] Buat tipe `ChecklistViewModel` di `lib/view-models/checklist.ts` beserta fixture di `lib/fixtures/checklist.ts`
-- [ ] T097 [US7] Buat daftar tugas, penanda kemajuan, dan penugasan ke salah satu anggota atau keduanya di `components/trips/checklist/`, lalu sambungkan ke tab dan jalankan pembantu responsif dan aksesibilitas
+- [X] T096 [P] [US7] Buat tipe `ChecklistViewModel` di `lib/view-models/checklist.ts` beserta fixture di `lib/fixtures/checklist.ts`
+- [X] T097 [US7] Buat daftar tugas, penanda kemajuan, dan penugasan ke salah satu anggota atau keduanya di `components/trips/checklist/`, lalu sambungkan ke tab dan jalankan pembantu responsif dan aksesibilitas
 
 ### Our Places — koleksi tempat (FR-056)
 
-- [ ] T098 [P] [US7] Buat tipe `PlacesViewModel` di `lib/view-models/places.ts` beserta fixture di `lib/fixtures/places.ts` termasuk varian tanpa gambar
-- [ ] T099 [US7] Buat tampilan galeri dan daftar beserta kartu tempat di `components/places/`
-- [ ] T100 [US7] Buat halaman di `app/(app)/places/page.tsx` dan detail di `app/(app)/places/[id]/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T098 [P] [US7] Buat tipe `PlacesViewModel` di `lib/view-models/places.ts` beserta fixture di `lib/fixtures/places.ts` termasuk varian tanpa gambar
+- [X] T099 [US7] Buat tampilan galeri dan daftar beserta kartu tempat di `components/places/`
+- [X] T100 [US7] Buat halaman di `app/(app)/places/page.tsx` dan detail di `app/(app)/places/[id]/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Our Soundtrack — jurnal musik (FR-057)
 
-- [ ] T101 [P] [US7] Buat tipe `SoundtrackViewModel` di `lib/view-models/soundtrack.ts` beserta fixture di `lib/fixtures/soundtrack.ts`
-- [ ] T102 [US7] Buat kartu lagu di `components/soundtrack/` berisi sampul, judul, penyanyi, aksi memutar, dan cerita singkat — terasa sebagai jurnal, bukan pemutar musik
-- [ ] T103 [US7] Buat halaman di `app/(app)/soundtrack/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
+- [X] T101 [P] [US7] Buat tipe `SoundtrackViewModel` di `lib/view-models/soundtrack.ts` beserta fixture di `lib/fixtures/soundtrack.ts`
+- [X] T102 [US7] Buat kartu lagu di `components/soundtrack/` berisi sampul, judul, penyanyi, aksi memutar, dan cerita singkat — terasa sebagai jurnal, bukan pemutar musik
+- [X] T103 [US7] Buat halaman di `app/(app)/soundtrack/page.tsx`, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Our Future — papan impian, section pada `/` (FR-058)
 
-- [ ] T104 [P] [US7] Buat tipe `FutureViewModel` di `lib/view-models/future.ts` beserta fixture di `lib/fixtures/future.ts` mencakup status direncanakan, berjalan, dan tercapai
-- [ ] T105 [US7] Buat section Our Future di `components/future/` beserta perayaan untuk butir yang tercapai, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
+- [X] T104 [P] [US7] Buat tipe `FutureViewModel` di `lib/view-models/future.ts` beserta fixture di `lib/fixtures/future.ts` mencakup status direncanakan, berjalan, dan tercapai
+- [X] T105 [US7] Buat section Our Future di `components/future/` beserta perayaan untuk butir yang tercapai, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
 
 ### Just For Us — interaksi bermain, section pada `/` (FR-059)
 
-- [ ] T106 [P] [US7] Buat tipe `JustForUsViewModel` di `lib/view-models/just-for-us.ts` beserta fixture di `lib/fixtures/just-for-us.ts`
-- [ ] T107 [US7] Buat Daily Question, Couple Quiz, dan Who Is More Likely? di `components/just-for-us/` dengan nada bermain dan bukan bersaing, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
+- [X] T106 [P] [US7] Buat tipe `JustForUsViewModel` di `lib/view-models/just-for-us.ts` beserta fixture di `lib/fixtures/just-for-us.ts`
+- [X] T107 [US7] Buat Daily Question, Couple Quiz, dan Who Is More Likely? di `components/just-for-us/` dengan nada bermain dan bukan bersaing, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
 
 ### Our Time — tampilan tenang, section pada `/` (FR-060)
 
-- [ ] T108 [P] [US7] Buat tipe `OurTimeViewModel` di `lib/view-models/our-time.ts` yang menerima durasi dari `lib/date/duration.ts` milik fitur 001, beserta fixture di `lib/fixtures/our-time.ts` untuk dipakai bila fitur 001 belum tersedia
-- [ ] T109 [US7] Buat section Our Time di `components/time/` yang menampilkan durasi sebagai kalimat tenang beserta tanggal mulai, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
+- [X] T108 [P] [US7] Buat tipe `OurTimeViewModel` di `lib/view-models/our-time.ts` yang menerima durasi dari `lib/date/duration.ts` milik fitur 001, beserta fixture di `lib/fixtures/our-time.ts` untuk dipakai bila fitur 001 belum tersedia
+- [X] T109 [US7] Buat section Our Time di `components/time/` yang menampilkan durasi sebagai kalimat tenang beserta tanggal mulai, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
 
 ### Important Dates — kalender hubungan, section pada `/` (FR-061)
 
-- [ ] T110 [P] [US7] Buat tipe `ImportantDatesViewModel` di `lib/view-models/important-dates.ts` beserta fixture di `lib/fixtures/important-dates.ts`
-- [ ] T111 [US7] Buat penonjolan tanggal terdekat beserta hitung mundur dan kartu tanggal di `components/important-dates/`, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
+- [X] T110 [P] [US7] Buat tipe `ImportantDatesViewModel` di `lib/view-models/important-dates.ts` beserta fixture di `lib/fixtures/important-dates.ts`
+- [X] T111 [US7] Buat penonjolan tanggal terdekat beserta hitung mundur dan kartu tanggal di `components/important-dates/`, lalu pasang sebagai section pada `app/(app)/page.tsx` dan jalankan pembantu responsif dan aksesibilitas
 
 ### Settings — antarmuka utilitas (FR-062)
 
-- [ ] T112 [US7] Terapkan sistem desain pada halaman `app/(app)/settings/page.tsx` dan `app/(app)/settings/members/page.tsx` milik fitur 001 tanpa mengubah fungsinya, lalu jalankan pembantu responsif dan aksesibilitas
+- [ ] T112 [US7] (TERSENDAT: butuh halaman Settings dari fitur 001) Terapkan sistem desain pada halaman `app/(app)/settings/page.tsx` dan `app/(app)/settings/members/page.tsx` milik fitur 001 tanpa mengubah fungsinya, lalu jalankan pembantu responsif dan aksesibilitas
 
 ### Pemeriksaan menyeluruh US7
 
-- [ ] T113 [P] [US7] Buat halaman rujukan watak bagian di `app/ui-kit/sections/page.tsx` yang menampilkan watak visual tiap bagian berdampingan untuk memastikan tidak ada dua bagian yang tertukar
-- [ ] T114 [P] [US7] Buat E2E di `tests/e2e/a11y-sections.spec.ts` yang menjalankan pemindai aksesibilitas pada seluruh halaman bagian
-- [ ] T115 [P] [US7] Buat E2E di `tests/e2e/responsive-sections.spec.ts` yang menjalankan pemeriksaan lebar 320 px pada seluruh halaman bagian
-- [ ] T116 [US7] Audit seluruh layar terhadap daftar pola terlarang pada FR-028 dan catat setiap pemakaian yang memiliki alasan fungsional di `specs/002-ui-foundation/plan.md`
+- [X] T113 [P] [US7] Buat halaman rujukan watak bagian di `app/ui-kit/sections/page.tsx` yang menampilkan watak visual tiap bagian berdampingan untuk memastikan tidak ada dua bagian yang tertukar
+- [X] T114 [P] [US7] Buat E2E di `tests/e2e/a11y-sections.spec.ts` yang menjalankan pemindai aksesibilitas pada seluruh halaman bagian
+- [X] T115 [P] [US7] Buat E2E di `tests/e2e/responsive-sections.spec.ts` yang menjalankan pemeriksaan lebar 320 px pada seluruh halaman bagian
+- [X] T116 [US7] Audit seluruh layar terhadap daftar pola terlarang pada FR-028 dan catat setiap pemakaian yang memiliki alasan fungsional di `specs/002-ui-foundation/plan.md`
 
 **Checkpoint**: Langkah 20, 21, dan 22 pada tabel validasi manual lolos.
 
@@ -394,13 +385,13 @@ Kelompok-kelompok ini saling bebas dan dapat dikerjakan dalam urutan apa pun.
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T117 [P] Tinjau seluruh kalimat pengantar dan empty state pada `components/` agar bernada hangat dan personal, bukan administratif
-- [ ] T118 [P] Verifikasi tidak ada formulir pada `components/` maupun `app/` yang menampilkan pengenal relationship, penanda pembuat, penanda waktu perubahan, pengenal basis data, atau path penyimpanan
-- [ ] T119 [P] Jalankan perintah pemeriksaan pemisahan komponen dari data pada [quickstart.md](./quickstart.md) dan pastikan tidak ada komponen bagian yang mengambil data sendiri
-- [ ] T120 Jalankan perintah penghitung sisa utang fixture pada [quickstart.md](./quickstart.md) dan catat daftar halaman yang masih memakai fixture pada bagian Complexity Tracking di `specs/002-ui-foundation/plan.md`
-- [ ] T121 [P] Ukur jumlah komponen client dan ukuran payload landing page `app/(app)/page.tsx`, lalu pindahkan section yang berat ke pemuatan bertahap bila perlu
-- [ ] T122 Jalankan `npm run lint`, `npx tsc --noEmit`, `npm run test`, `npm run test:e2e`, dan `npm run test:a11y` hingga seluruhnya lolos
-- [ ] T123 Jalankan seluruh 22 langkah tabel validasi manual pada [quickstart.md](./quickstart.md) dan catat hasilnya
+- [X] T117 [P] Tinjau seluruh kalimat pengantar dan empty state pada `components/` agar bernada hangat dan personal, bukan administratif
+- [X] T118 [P] Verifikasi tidak ada formulir pada `components/` maupun `app/` yang menampilkan pengenal relationship, penanda pembuat, penanda waktu perubahan, pengenal basis data, atau path penyimpanan
+- [X] T119 [P] Jalankan perintah pemeriksaan pemisahan komponen dari data pada [quickstart.md](./quickstart.md) dan pastikan tidak ada komponen bagian yang mengambil data sendiri
+- [X] T120 Jalankan perintah penghitung sisa utang fixture pada [quickstart.md](./quickstart.md) dan catat daftar halaman yang masih memakai fixture pada bagian Complexity Tracking di `specs/002-ui-foundation/plan.md`
+- [X] T121 [P] Ukur jumlah komponen client dan ukuran payload landing page `app/(app)/page.tsx`, lalu pindahkan section yang berat ke pemuatan bertahap bila perlu
+- [X] T122 Jalankan `npm run lint`, `npx tsc --noEmit`, `npm run test`, `npm run test:e2e`, dan `npm run test:a11y` hingga seluruhnya lolos
+- [X] T123 Jalankan seluruh 22 langkah tabel validasi manual pada [quickstart.md](./quickstart.md) dan catat hasilnya
 
 ---
 

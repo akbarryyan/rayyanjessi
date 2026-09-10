@@ -29,10 +29,18 @@ test.describe("Home", () => {
 
   test("surat tersegel tidak membocorkan isinya", async ({ page }) => {
     await page.goto("/?variant=longText");
-    await expect(page.getByText("Suratnya masih tersegel.")).toBeVisible();
-    await expect(page.getByText(/Bisa dibuka 14 Februari 2027/)).toBeVisible();
-    // Cuplikan isinya tidak boleh muncul di mana pun.
-    await expect(page.getByText(/hujan turun pelan sekali/)).toHaveCount(0);
+
+    // Dibatasi ke kartu suratnya: teks contoh yang sama juga dipakai section
+    // lain di halaman ini, jadi memeriksa seluruh halaman akan menuduh
+    // tabrakan fixture sebagai kebocoran.
+    const letterCard = page
+      .locator("#now div")
+      .filter({ hasText: "Suratnya masih tersegel." })
+      .last();
+
+    await expect(letterCard).toBeVisible();
+    await expect(letterCard).toContainText("Bisa dibuka 14 Februari 2027");
+    await expect(letterCard).not.toContainText(/hujan turun pelan sekali/);
   });
 
   test("keadaan kosong tetap menawarkan langkah berikutnya", async ({ page }) => {
