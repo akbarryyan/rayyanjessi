@@ -38,51 +38,72 @@ akhir. Menundanya berarti menemukan 16 masalah sekaligus di atas pola yang terla
 
 ## Status Implementasi (2026-09-10)
 
-**Selesai dan terverifikasi**: 60 dari 123 task — Phase 1, 2 (fondasi), US1 (sistem desain),
-US2 (navigasi), US3 (pola halaman), dan US6 (perkakas aksesibilitas serta responsif).
+**Selesai dan terverifikasi**: 75 dari 123 task — Phase 1, 2 (fondasi), US1 (sistem desain),
+US2 (navigasi), US3 (pola halaman), US4 (keadaan antarmuka), US5 (gerak, kecuali T062),
+US6 (perkakas aksesibilitas dan responsif), serta bagian Home pada US7.
 
-**Belum dikerjakan**: 63 task — US4 (6), US5 (7), US6 sisa (0), US7 (43), Polish (7).
+**Belum dikerjakan**: 48 task — US7 sisa (40 dari 43), T062, dan Polish (7).
 
 ### Gerbang kualitas saat ini
 
-`npm run lint`, `npx tsc --noEmit`, `npx vitest run` (32 lolos), `npx playwright test`
-(27 lolos), `npm run check:tokens`, dan `npm run build` seluruhnya bersih.
+`npm run lint`, `npx tsc --noEmit`, `npm run build`, `npx vitest run` (36 lolos),
+`npx playwright test` (50 lolos), dan `npm run check:tokens` seluruhnya bersih.
 
-Cakupan E2E yang sudah berjalan: penelusuran papan ketik dengan pemeriksaan urutan fokus,
-jebakan fokus pada dialog, lebar 320 px tanpa scroll mendatar, ukuran sasaran sentuh,
-pemindaian aksesibilitas pada tiap halaman, dan penanda posisi navigasi.
+Cakupan E2E: penelusuran papan ketik dengan pemeriksaan urutan fokus per wilayah, jebakan fokus
+dialog, lebar 320 px tanpa scroll mendatar, ukuran sasaran sentuh, pemindaian aksesibilitas per
+halaman, penanda posisi navigasi, kerangka muat, penanganan kegagalan, preferensi kurangi-gerak,
+ketiadaan animasi saat halaman diam, dan Home pada keempat varian fixture.
+
+### Pola yang ditetapkan bagian Home, diikuti 15 bagian berikutnya
+
+1. Tipe view model di `lib/view-models/<domain>.ts`, memakai istilah pasangan bukan istilah
+   database.
+2. Fixture di `lib/fixtures/<domain>.ts` dengan keempat varian: typical, longText, noImages,
+   empty.
+3. Komponen di `components/<domain>/` yang menangani ketiga keadaan `SectionData`
+   (kosong, terisi, gagal) dan tidak pernah mengambil data sendiri.
+4. Halaman menyusun view model dari fixture, dengan `?variant=` agar varian ekstrem dapat diuji.
+5. Berkas E2E `tests/e2e/<domain>.spec.ts` yang menjalankan pembantu responsif dan aksesibilitas
+   pada keempat varian.
 
 ### Koreksi terhadap rencana, ditemukan saat implementasi
 
-1. **Rute `/_ui` mustahil ada.** Folder berawalan garis bawah adalah *private folder* yang
-   dikecualikan dari routing. Rutenya menjadi `/ui-kit`. `research.md` R-006 sudah dikoreksi.
-2. **Tailwind 4 tidak punya namespace `--duration-*`.** Token durasi ikut terbuang. Kini
-   didefinisikan di `:root` dan dirujuk lewat `duration-(--nama)`.
-3. **`Modal` dan `Drawer` perlu prop `trigger`.** Tanpa Radix memiliki hubungan pemicu-dialog,
-   fokus tidak kembali ke pemicunya — melanggar FR-039.
-4. **Kontras `lineStrong` hanya 1.72:1** terhadap ambang 3:1 untuk garis kolom isian.
-   Digelapkan menjadi 3.55:1, bukan ambangnya yang diturunkan.
+1. **Rute `/_ui` mustahil ada** — folder berawalan garis bawah adalah *private folder* yang
+   dikecualikan dari routing. Rutenya menjadi `/ui-kit`.
+2. **Tailwind 4 tidak punya namespace `--duration-*`** — token durasi ikut terbuang. Kini di
+   `:root`, dirujuk lewat `duration-(--nama)`.
+3. **`Modal` dan `Drawer` perlu prop `trigger`** — tanpa Radix memiliki hubungan pemicu-dialog,
+   fokus tidak kembali ke pemicunya (FR-039).
+4. **Kontras `lineStrong` hanya 1.72:1** terhadap ambang 3:1. Digelapkan menjadi 3.55:1.
 5. **`@types/node` masih `^20` padahal Node 24**, memblokir Vitest 5.
-6. **Playwright harus memakai `localhost`, bukan `127.0.0.1`** — Next dev server memblokir aset
-   client dari origin yang dianggap asing, sehingga React tidak pernah ter-hydrate.
-7. **Penanda section aktif menandai section pertama di puncak halaman**, padahal pengguna masih
-   melihat pembuka. Kini puncak halaman menandai Beranda.
-8. **"Section terakhir" diambil dari urutan peta navigasi, bukan urutan dokumen.** Keduanya
-   berbeda; kini diurutkan menurut posisinya di halaman.
-9. **Pemeriksa urutan fokus tidak memperhitungkan perputaran siklus Tab**, sehingga menuduh
-   perilaku normal peramban sebagai kesalahan.
+6. **Playwright harus memakai `localhost`, bukan `127.0.0.1`** — Next memblokir aset client dari
+   origin yang dianggap asing, sehingga React tidak pernah ter-hydrate.
+7. **Penanda section menyala di puncak halaman** padahal pembaca masih di pembuka.
+8. **"Section terakhir" diambil dari urutan peta navigasi, bukan urutan dokumen.**
+9. **Section terakhir tak pernah mencapai pita pengamatan** di sepertiga atas layar; dasar
+   halaman kini selalu menandainya.
+10. **Pemeriksa urutan fokus tidak memperhitungkan perputaran siklus Tab.**
+11. **Pemeriksa urutan fokus mengasumsikan halaman satu kolom** — pada tata letak bersidebar,
+    urutan maju berlaku di dalam satu wilayah, bukan lintas wilayah.
+12. **Test fokus rapuh** — `.focus()` programatik tidak andal memicu `:focus-visible`; kini
+    menekan Tab sungguhan.
 
 ### Penghalang yang masih berdiri
 
-**Fitur 001 belum diimplementasikan.** Tidak ada `prisma/`, `lib/db/`, maupun halaman
-`settings`. Akibatnya:
+**Fitur 001 belum diimplementasikan.** Tidak ada `prisma/`, `lib/db/`, maupun halaman `settings`.
 
-- **T112** (menerapkan sistem desain pada halaman Settings milik 001) **tidak dapat dikerjakan**.
-- **T108–T109** (Our Time) dikerjakan memakai fixture lebih dulu.
+- **T112** (menerapkan sistem desain pada Settings milik 001) **tidak dapat dikerjakan**.
+- **T062** (animasi penanda centang) menunggu T097 membuat komponen daftar tugas.
 - Tautan navigasi ke `/story`, `/memories`, `/letters`, `/open-when`, `/trips`, `/places`,
-  `/soundtrack`, dan `/settings` masih menghasilkan 404 sampai US7 membuat halamannya.
-- Vitest, Playwright, dan konfigurasinya seharusnya berasal dari 001; ketiganya dipasang lebih
-  awal di sini agar test 002 dapat berjalan.
+  `/soundtrack`, dan `/settings` masih 404 sampai US7 membuat halamannya.
+- Vitest, Playwright, dan konfigurasinya seharusnya berasal dari 001; dipasang lebih awal di sini.
+
+### Utang fixture yang sedang berjalan
+
+`app/(app)/page.tsx` menyusun view model-nya dari `lib/fixtures/home.ts`. Ini utang yang
+disengaja dan tercatat pada Complexity Tracking di `plan.md`. T120 menghitungnya lewat perintah
+pada `quickstart.md`; angkanya akan naik seiring bagian US7 bertambah, lalu turun ketika spec
+domainnya mendarat.
 
 ---
 
@@ -207,12 +228,12 @@ kosong tanpa penjelasan.
 **Independent Test**: Memperlambat jaringan dan memaksa kegagalan, lalu memastikan setiap bagian
 menampilkan keadaan yang sesuai.
 
-- [ ] T053 [US4] Buat konvensi `loading.tsx` bagi tiap route bagian di `app/(app)/` yang merender kerangka halaman memakai `components/ui/Skeleton.tsx`
-- [ ] T054 [US4] Buat `app/(app)/error.tsx` yang merender `components/ui/ErrorState.tsx` dengan cara mencoba lagi, tanpa memaparkan detail internal
-- [ ] T055 [US4] Dokumentasikan dan terapkan daftar keadaan wajib — memuat, terisi, kosong, gagal, berhasil, menyunting, menyimpan, menghapus, nonaktif — sebagai kontrak komponen di `lib/view-models/index.ts`
-- [ ] T056 [US4] Terapkan pengembalian kendali ke keadaan semula beserta penyampaian alasan ketika sebuah aksi gagal, pada `components/ui/Button.tsx` dan `components/ui/Toast.tsx`
-- [ ] T057 [P] [US4] Buat E2E di `tests/e2e/loading-states.spec.ts` yang memperlambat jaringan dan memastikan kerangka halaman muncul lebih dulu di setiap route bagian
-- [ ] T058 [P] [US4] Buat E2E di `tests/e2e/error-states.spec.ts` yang memaksa kegagalan dan memastikan pesan terbaca beserta cara mencoba lagi muncul
+- [X] T053 [US4] Buat konvensi `loading.tsx` bagi tiap route bagian di `app/(app)/` yang merender kerangka halaman memakai `components/ui/Skeleton.tsx`
+- [X] T054 [US4] Buat `app/(app)/error.tsx` yang merender `components/ui/ErrorState.tsx` dengan cara mencoba lagi, tanpa memaparkan detail internal
+- [X] T055 [US4] Dokumentasikan dan terapkan daftar keadaan wajib — memuat, terisi, kosong, gagal, berhasil, menyunting, menyimpan, menghapus, nonaktif — sebagai kontrak komponen di `lib/view-models/index.ts`
+- [X] T056 [US4] Terapkan pengembalian kendali ke keadaan semula beserta penyampaian alasan ketika sebuah aksi gagal, pada `components/ui/Button.tsx` dan `components/ui/Toast.tsx`
+- [X] T057 [P] [US4] Buat E2E di `tests/e2e/loading-states.spec.ts` yang memperlambat jaringan dan memastikan kerangka halaman muncul lebih dulu di setiap route bagian
+- [X] T058 [P] [US4] Buat E2E di `tests/e2e/error-states.spec.ts` yang memaksa kegagalan dan memastikan pesan terbaca beserta cara mencoba lagi muncul
 
 **Checkpoint**: Langkah 15 dan 16 pada tabel validasi manual lolos.
 
@@ -226,13 +247,13 @@ preferensi kurangi-gerak.
 **Independent Test**: Menyalakan preferensi kurangi-gerak pada sistem, lalu menelusuri seluruh
 interaksi beranimasi dan memastikan semuanya tetap berfungsi.
 
-- [ ] T059 [US5] Terapkan perpindahan antar halaman memakai `<ViewTransition>` React pada `app/(app)/layout.tsx`, sesuai [research.md](./research.md) R-005
-- [ ] T060 [P] [US5] Terapkan animasi kemunculan kartu di `components/ui/Card.tsx` memakai token durasi, singkat dan tidak menunda interaksi
-- [ ] T061 [P] [US5] Terapkan animasi kemunculan dan hilangnya lapisan pada `components/ui/Modal.tsx` dan `components/ui/Drawer.tsx`
-- [ ] T062 [P] [US5] Terapkan animasi penanda centang pada komponen daftar tugas di `components/trips/checklist/`
-- [ ] T063 [US5] Audit seluruh animasi pada `components/` dan pastikan tidak ada yang berjalan terus-menerus tanpa dipicu
-- [ ] T064 [P] [US5] Buat E2E di `tests/e2e/reduced-motion.spec.ts` yang menjalankan seluruh interaksi beranimasi dengan preferensi kurangi-gerak menyala dan memastikan tidak ada fungsi yang hilang
-- [ ] T065 [P] [US5] Buat E2E di `tests/e2e/no-idle-animation.spec.ts` yang memastikan halaman dalam keadaan diam tidak menjalankan animasi
+- [X] T059 [US5] Terapkan perpindahan antar halaman memakai `<ViewTransition>` React pada `app/(app)/layout.tsx`, sesuai [research.md](./research.md) R-005
+- [X] T060 [P] [US5] Terapkan animasi kemunculan kartu di `components/ui/Card.tsx` memakai token durasi, singkat dan tidak menunda interaksi
+- [X] T061 [P] [US5] Terapkan animasi kemunculan dan hilangnya lapisan pada `components/ui/Modal.tsx` dan `components/ui/Drawer.tsx`
+- [ ] T062 [US5] (menunggu T097) Terapkan animasi penanda centang pada komponen daftar tugas di `components/trips/checklist/`
+- [X] T063 [US5] Audit seluruh animasi pada `components/` dan pastikan tidak ada yang berjalan terus-menerus tanpa dipicu
+- [X] T064 [P] [US5] Buat E2E di `tests/e2e/reduced-motion.spec.ts` yang menjalankan seluruh interaksi beranimasi dengan preferensi kurangi-gerak menyala dan memastikan tidak ada fungsi yang hilang
+- [X] T065 [P] [US5] Buat E2E di `tests/e2e/no-idle-animation.spec.ts` yang memastikan halaman dalam keadaan diam tidak menjalankan animasi
 
 **Checkpoint**: Langkah 13 dan 14 pada tabel validasi manual lolos; SC-005 terpenuhi.
 
@@ -275,9 +296,9 @@ Kelompok-kelompok ini saling bebas dan dapat dikerjakan dalam urutan apa pun.
 
 ### Home — gambaran hangat (FR-047)
 
-- [ ] T074 [P] [US7] Buat tipe `HomeViewModel` di `lib/view-models/home.ts` berisi sapaan, nama kedua anggota, durasi hubungan, pertanyaan harian, perjalanan terdekat beserta hitung mundur, memori terbaru, surat terbaru, satu butir masa depan, dan aksi cepat; beserta fixture di `lib/fixtures/home.ts` termasuk varian ekstrem
-- [ ] T075 [US7] Buat komponen hero dan section Home di `components/home/`, dengan urutan informasi mengikuti prioritas pada `docs/prd.md` §13
-- [ ] T076 [US7] Rakit landing page di `app/(app)/page.tsx` yang merender hero, section NOW, PAST, dan FUTURE, lalu jalankan pembantu responsif dan aksesibilitas dari T066 dan T067
+- [X] T074 [P] [US7] Buat tipe `HomeViewModel` di `lib/view-models/home.ts` berisi sapaan, nama kedua anggota, durasi hubungan, pertanyaan harian, perjalanan terdekat beserta hitung mundur, memori terbaru, surat terbaru, satu butir masa depan, dan aksi cepat; beserta fixture di `lib/fixtures/home.ts` termasuk varian ekstrem
+- [X] T075 [US7] Buat komponen hero dan section Home di `components/home/`, dengan urutan informasi mengikuti prioritas pada `docs/prd.md` §13
+- [X] T076 [US7] Rakit landing page di `app/(app)/page.tsx` yang merender hero, section NOW, PAST, dan FUTURE, lalu jalankan pembantu responsif dan aksesibilitas dari T066 dan T067
 
 ### Our Story — lini masa editorial (FR-048)
 

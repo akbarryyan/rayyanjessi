@@ -106,6 +106,23 @@ body {
 }
 
 /*
+ * Perpindahan antar halaman (FR-031).
+ *
+ * Ditangani View Transitions milik peramban, bukan kepustakaan animasi:
+ * ia tidak perlu melacak posisi elemen antar route secara manual, dan tidak
+ * menahan navigasi. Durasinya pendek dengan sengaja.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-quick);
+  animation-timing-function: var(--ease-out-soft);
+}
+
+/*
  * Preferensi kurangi-gerak (FR-030).
  * Lapisan ini menjangkau transisi CSS dan View Transitions, yang berada di luar
  * jangkauan penyedia gerak Framer Motion (research.md R-005).

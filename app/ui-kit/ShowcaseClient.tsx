@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Drawer } from "@/components/ui/Drawer";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
@@ -37,6 +38,24 @@ export function ShowcaseClient() {
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [failing, setFailing] = useState(false);
+
+  /**
+   * Aksi yang gagal: tombolnya kembali ke keadaan semula dan alasannya
+   * disampaikan, sehingga pasangan tidak dibiarkan menebak apakah aksinya
+   * jadi atau tidak (FR-025).
+   */
+  async function runFailingAction() {
+    setFailing(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      throw new Error("gagal");
+    } catch {
+      toast.error("Belum tersimpan. Coba sebentar lagi ya.");
+    } finally {
+      setFailing(false);
+    }
+  }
   const [selected, setSelected] = useState<string>();
   const toast = useToast();
 
@@ -87,10 +106,12 @@ export function ShowcaseClient() {
 
       <Section title="Kartu">
         <Row>
-          <Card className="w-64 p-5">
+          <FadeIn>
+            <Card className="w-64 p-5">
             <h3 className="font-display text-xl text-ink">Sore yang panjang</h3>
-            <p className="mt-1 text-sm text-ink-faint">12 Agustus 2026</p>
-          </Card>
+              <p className="mt-1 text-sm text-ink-faint">12 Agustus 2026</p>
+            </Card>
+          </FadeIn>
           <Card interactive className="w-64 p-5">
             <h3 className="font-display text-xl text-ink">Kartu yang bisa ditekan</h3>
             <p className="mt-1 text-sm text-ink-faint">Bayangannya menebal saat disentuh</p>
@@ -154,6 +175,14 @@ export function ShowcaseClient() {
           action={<Button variant="secondary">Tambah yang pertama</Button>}
         />
         <ErrorState onRetry={() => toast.success("Dicoba lagi.")} />
+      </Section>
+
+      <Section title="Aksi yang gagal">
+        <Row>
+          <Button loading={failing} onClick={runFailingAction}>
+            Simpan kenangan
+          </Button>
+        </Row>
       </Section>
 
       <Section title="Konfirmasi menghapus">
