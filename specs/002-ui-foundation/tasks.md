@@ -38,46 +38,51 @@ akhir. Menundanya berarti menemukan 16 masalah sekaligus di atas pola yang terla
 
 ## Status Implementasi (2026-09-10)
 
-**Selesai dan terverifikasi**: T001–T036 (Phase 1, 2, dan US1). Fondasi dependensinya berdiri:
-token, penyedia gerak, peta navigasi, 12 komponen dasar, halaman peraga, dan enam E2E yang
-seluruhnya lolos termasuk pemindaian aksesibilitas.
+**Selesai dan terverifikasi**: 60 dari 123 task — Phase 1, 2 (fondasi), US1 (sistem desain),
+US2 (navigasi), US3 (pola halaman), dan US6 (perkakas aksesibilitas serta responsif).
 
-**Belum dikerjakan**: T037–T123 (87 task).
-
-### Koreksi terhadap rencana, ditemukan saat implementasi
-
-1. **Rute halaman peraga `/_ui` mustahil ada.** Di App Router, folder berawalan garis bawah
-   adalah *private folder* yang sengaja dikecualikan dari routing. Rutenya menjadi `/ui-kit`.
-   Ditemukan oleh E2E yang gagal. `research.md` R-006 sudah dikoreksi.
-2. **Tailwind 4 tidak punya namespace `--duration-*`.** Ia punya `--ease-*`, tetapi token durasi
-   ikut terbuang karena tak menghasilkan utility. Durasi kini didefinisikan sebagai custom
-   property di `:root` dan dirujuk lewat `duration-(--nama)`. Dibuktikan dengan memeriksa CSS
-   hasil build.
-3. **`Modal` dan `Drawer` perlu prop `trigger`.** Tanpa Radix memiliki hubungan pemicu-dialog,
-   fokus tidak dijamin kembali ke pemicunya setelah ditutup — melanggar FR-039. Ditemukan oleh
-   E2E yang gagal; yang diperbaiki komponennya, bukan test-nya.
-4. **`@types/node` masih `^20` padahal Node 24.** Warisan template `create-next-app` yang
-   memblokir pemasangan Vitest 5. Dinaikkan ke `^24`.
-5. **Playwright harus memakai `localhost`, bukan `127.0.0.1`.** Next dev server memperlakukan
-   `127.0.0.1` sebagai origin asing dan memblokir aset client-nya, sehingga React tidak pernah
-   ter-hydrate dan seluruh interaksi mati.
-
-### Penghalang yang masih berdiri
-
-**Fitur 001 belum diimplementasikan.** Repo tidak memiliki `prisma/`, `lib/db/`, maupun halaman
-`settings`. Akibatnya:
-
-- **T112** (menerapkan sistem desain pada halaman Settings milik 001) **tidak dapat dikerjakan**
-  sampai 001 selesai.
-- **T108–T109** (Our Time) dikerjakan memakai fixture lebih dulu, sesuai catatan pada plan.
-- Vitest, Playwright, dan konfigurasinya seharusnya berasal dari 001 (T002–T004 di sana).
-  Ketiganya dipasang lebih awal di sini agar test 002 dapat berjalan; ketika 001 dikerjakan,
-  task-task itu sudah terpenuhi.
+**Belum dikerjakan**: 63 task — US4 (6), US5 (7), US6 sisa (0), US7 (43), Polish (7).
 
 ### Gerbang kualitas saat ini
 
-`npm run lint`, `npx tsc --noEmit`, `npx vitest run` (32 lolos), `npx playwright test` (6 lolos),
-dan `npm run check:tokens` seluruhnya bersih.
+`npm run lint`, `npx tsc --noEmit`, `npx vitest run` (32 lolos), `npx playwright test`
+(27 lolos), `npm run check:tokens`, dan `npm run build` seluruhnya bersih.
+
+Cakupan E2E yang sudah berjalan: penelusuran papan ketik dengan pemeriksaan urutan fokus,
+jebakan fokus pada dialog, lebar 320 px tanpa scroll mendatar, ukuran sasaran sentuh,
+pemindaian aksesibilitas pada tiap halaman, dan penanda posisi navigasi.
+
+### Koreksi terhadap rencana, ditemukan saat implementasi
+
+1. **Rute `/_ui` mustahil ada.** Folder berawalan garis bawah adalah *private folder* yang
+   dikecualikan dari routing. Rutenya menjadi `/ui-kit`. `research.md` R-006 sudah dikoreksi.
+2. **Tailwind 4 tidak punya namespace `--duration-*`.** Token durasi ikut terbuang. Kini
+   didefinisikan di `:root` dan dirujuk lewat `duration-(--nama)`.
+3. **`Modal` dan `Drawer` perlu prop `trigger`.** Tanpa Radix memiliki hubungan pemicu-dialog,
+   fokus tidak kembali ke pemicunya — melanggar FR-039.
+4. **Kontras `lineStrong` hanya 1.72:1** terhadap ambang 3:1 untuk garis kolom isian.
+   Digelapkan menjadi 3.55:1, bukan ambangnya yang diturunkan.
+5. **`@types/node` masih `^20` padahal Node 24**, memblokir Vitest 5.
+6. **Playwright harus memakai `localhost`, bukan `127.0.0.1`** — Next dev server memblokir aset
+   client dari origin yang dianggap asing, sehingga React tidak pernah ter-hydrate.
+7. **Penanda section aktif menandai section pertama di puncak halaman**, padahal pengguna masih
+   melihat pembuka. Kini puncak halaman menandai Beranda.
+8. **"Section terakhir" diambil dari urutan peta navigasi, bukan urutan dokumen.** Keduanya
+   berbeda; kini diurutkan menurut posisinya di halaman.
+9. **Pemeriksa urutan fokus tidak memperhitungkan perputaran siklus Tab**, sehingga menuduh
+   perilaku normal peramban sebagai kesalahan.
+
+### Penghalang yang masih berdiri
+
+**Fitur 001 belum diimplementasikan.** Tidak ada `prisma/`, `lib/db/`, maupun halaman
+`settings`. Akibatnya:
+
+- **T112** (menerapkan sistem desain pada halaman Settings milik 001) **tidak dapat dikerjakan**.
+- **T108–T109** (Our Time) dikerjakan memakai fixture lebih dulu.
+- Tautan navigasi ke `/story`, `/memories`, `/letters`, `/open-when`, `/trips`, `/places`,
+  `/soundtrack`, dan `/settings` masih menghasilkan 404 sampai US7 membuat halamannya.
+- Vitest, Playwright, dan konfigurasinya seharusnya berasal dari 001; ketiganya dipasang lebih
+  awal di sini agar test 002 dapat berjalan.
 
 ---
 
@@ -160,15 +165,15 @@ besar, keduanya bersumber dari satu peta navigasi.
 **Independent Test**: Menjelajahi seluruh tujuan dari ponsel dan dari layar besar, memastikan tiap
 tujuan tercapai dan posisi saat ini selalu terlihat.
 
-- [ ] T037 [US2] Buat `components/layout/AppShell.tsx` yang memuat kedua bentuk navigasi dan area isi, lalu pasang pada `app/(app)/layout.tsx`
-- [ ] T038 [US2] Buat `components/layout/MobileNav.tsx` yang menampilkan butir bertanda utama di bagian bawah layar, ditambah satu jalan menuju seluruh butir lainnya
-- [ ] T039 [US2] Buat `components/layout/MobileNavMore.tsx` sebagai lembar yang menampilkan seluruh tujuan yang tidak muat di navigasi bawah
-- [ ] T040 [US2] Buat `components/layout/DesktopNav.tsx` yang menampilkan seluruh tujuan di sisi kiri dengan bobot visual ringan, tidak menyerupai panel navigasi aplikasi administratif
-- [ ] T041 [US2] Terapkan penanda posisi pada kedua komponen navigasi menggunakan penentu dari `lib/navigation.ts`, dengan penanda yang tidak bergantung pada warna semata
-- [ ] T042 [US2] Buat pengamat section pada `components/layout/useVisibleSection.ts` yang melaporkan section landing page yang sedang terlihat, lalu sambungkan ke penanda posisi navigasi
-- [ ] T043 [US2] Terapkan pembaruan alamat halaman ketika berpindah ke sebuah section pada `app/(app)/page.tsx`, sehingga alamatnya dapat dibagikan dan dibuka langsung
-- [ ] T044 [P] [US2] Buat E2E di `tests/e2e/navigation.spec.ts` yang menelusuri seluruh tujuan dari lebar ponsel dan lebar desktop, memastikan tiap tujuan tercapai dan penanda posisi benar
-- [ ] T045 [P] [US2] Buat E2E di `tests/e2e/navigation-deeplink.spec.ts` yang memastikan alamat hasil perpindahan ke section dapat dibuka langsung pada tab baru
+- [X] T037 [US2] Buat `components/layout/AppShell.tsx` yang memuat kedua bentuk navigasi dan area isi, lalu pasang pada `app/(app)/layout.tsx`
+- [X] T038 [US2] Buat `components/layout/MobileNav.tsx` yang menampilkan butir bertanda utama di bagian bawah layar, ditambah satu jalan menuju seluruh butir lainnya
+- [X] T039 [US2] Buat `components/layout/MobileNavMore.tsx` sebagai lembar yang menampilkan seluruh tujuan yang tidak muat di navigasi bawah
+- [X] T040 [US2] Buat `components/layout/DesktopNav.tsx` yang menampilkan seluruh tujuan di sisi kiri dengan bobot visual ringan, tidak menyerupai panel navigasi aplikasi administratif
+- [X] T041 [US2] Terapkan penanda posisi pada kedua komponen navigasi menggunakan penentu dari `lib/navigation.ts`, dengan penanda yang tidak bergantung pada warna semata
+- [X] T042 [US2] Buat pengamat section pada `components/layout/useVisibleSection.ts` yang melaporkan section landing page yang sedang terlihat, lalu sambungkan ke penanda posisi navigasi
+- [X] T043 [US2] Terapkan pembaruan alamat halaman ketika berpindah ke sebuah section pada `app/(app)/page.tsx`, sehingga alamatnya dapat dibagikan dan dibuka langsung
+- [X] T044 [P] [US2] Buat E2E di `tests/e2e/navigation.spec.ts` yang menelusuri seluruh tujuan dari lebar ponsel dan lebar desktop, memastikan tiap tujuan tercapai dan penanda posisi benar
+- [X] T045 [P] [US2] Buat E2E di `tests/e2e/navigation-deeplink.spec.ts` yang memastikan alamat hasil perpindahan ke section dapat dibuka langsung pada tab baru
 
 **Checkpoint**: Langkah 5, 6, 7, 8, dan 9 pada tabel validasi manual lolos.
 
@@ -182,13 +187,13 @@ pemberitahuan keberhasilan — yang membuat seluruh bagian terasa satu produk.
 **Independent Test**: Menampilkan pola page header dan empty state untuk beberapa bagian contoh
 pada halaman peraga, lalu memastikan tidak ada kalimat yang berbunyi seperti pesan sistem.
 
-- [ ] T046 [P] [US3] Buat `components/ui/PageHeader.tsx` berisi judul, satu kalimat pengantar bernada personal, dan aksi utama opsional
-- [ ] T047 [P] [US3] Buat `components/ui/EmptyState.tsx` berisi judul, kalimat personal, dan satu aksi yang relevan
-- [ ] T048 [P] [US3] Buat `components/ui/ErrorState.tsx` berisi kalimat terbaca beserta cara mencoba lagi, tanpa nama teknis maupun jejak kesalahan
-- [ ] T049 [US3] Buat `components/ui/ConfirmDialog.tsx` di atas `Modal.tsx` yang menyebutkan secara jelas apa saja yang akan ikut terhapus
-- [ ] T050 [US3] Tambahkan seluruh pola halaman dari T046 sampai T049 ke halaman peraga `app/ui-kit/page.tsx`
-- [ ] T051 [P] [US3] Buat E2E di `tests/e2e/page-patterns.spec.ts` yang memastikan tidak ada empty state maupun pesan kegagalan pada `/ui-kit` yang memuat kalimat bergaya sistem, nama teknis, kode internal, atau jejak kesalahan
-- [ ] T052 [P] [US3] Buat E2E di `tests/e2e/confirm-dialog.spec.ts` yang memastikan konfirmasi penghapusan menyebutkan dampaknya sebelum aksi dijalankan
+- [X] T046 [P] [US3] Buat `components/ui/PageHeader.tsx` berisi judul, satu kalimat pengantar bernada personal, dan aksi utama opsional
+- [X] T047 [P] [US3] Buat `components/ui/EmptyState.tsx` berisi judul, kalimat personal, dan satu aksi yang relevan
+- [X] T048 [P] [US3] Buat `components/ui/ErrorState.tsx` berisi kalimat terbaca beserta cara mencoba lagi, tanpa nama teknis maupun jejak kesalahan
+- [X] T049 [US3] Buat `components/ui/ConfirmDialog.tsx` di atas `Modal.tsx` yang menyebutkan secara jelas apa saja yang akan ikut terhapus
+- [X] T050 [US3] Tambahkan seluruh pola halaman dari T046 sampai T049 ke halaman peraga `app/ui-kit/page.tsx`
+- [X] T051 [P] [US3] Buat E2E di `tests/e2e/page-patterns.spec.ts` yang memastikan tidak ada empty state maupun pesan kegagalan pada `/ui-kit` yang memuat kalimat bergaya sistem, nama teknis, kode internal, atau jejak kesalahan
+- [X] T052 [P] [US3] Buat E2E di `tests/e2e/confirm-dialog.spec.ts` yang memastikan konfirmasi penghapusan menyebutkan dampaknya sebelum aksi dijalankan
 
 **Checkpoint**: SC-006 dan SC-008 terpenuhi pada halaman peraga.
 
@@ -243,14 +248,14 @@ mengulanginya hanya dengan papan ketik.
 
 **Catatan**: Fase ini membangun perkakasnya. Penerapannya melekat pada tiap bagian di US7.
 
-- [ ] T066 [US6] Buat pembantu pengujian responsif di `tests/e2e/helpers/viewport.ts` yang menjalankan sebuah halaman pada lebar 320 px, tablet, dan desktop, lalu melaporkan scroll mendatar
-- [ ] T067 [US6] Buat pembantu pemindaian aksesibilitas di `tests/e2e/helpers/a11y.ts` yang menjalankan pemindai pada sebuah halaman dan gagal pada pelanggaran kontras maupun penanda semantik
-- [ ] T068 [US6] Buat pembantu penelusuran papan ketik di `tests/e2e/helpers/keyboard.ts` yang menelusuri seluruh kendali sebuah halaman dan memastikan urutannya masuk akal serta fokusnya terlihat
-- [ ] T069 [P] [US6] Terapkan ukuran sentuh yang nyaman pada seluruh kendali interaktif di `components/ui/`
-- [ ] T070 [P] [US6] Terapkan batas lebar baris teks pada `app/(app)/layout.tsx` agar tidak ada baris yang terlalu panjang untuk dibaca pada layar besar
-- [ ] T071 [P] [US6] Buat E2E di `tests/e2e/responsive-shell.spec.ts` memakai pembantu T066 untuk kerangka aplikasi dan landing page
-- [ ] T072 [P] [US6] Buat E2E di `tests/e2e/keyboard-shell.spec.ts` memakai pembantu T068 untuk kerangka aplikasi dan navigasi
-- [ ] T073 [P] [US6] Buat E2E di `tests/e2e/a11y-shell.spec.ts` memakai pembantu T067 untuk kerangka aplikasi dan landing page
+- [X] T066 [US6] Buat pembantu pengujian responsif di `tests/e2e/helpers/viewport.ts` yang menjalankan sebuah halaman pada lebar 320 px, tablet, dan desktop, lalu melaporkan scroll mendatar
+- [X] T067 [US6] Buat pembantu pemindaian aksesibilitas di `tests/e2e/helpers/a11y.ts` yang menjalankan pemindai pada sebuah halaman dan gagal pada pelanggaran kontras maupun penanda semantik
+- [X] T068 [US6] Buat pembantu penelusuran papan ketik di `tests/e2e/helpers/keyboard.ts` yang menelusuri seluruh kendali sebuah halaman dan memastikan urutannya masuk akal serta fokusnya terlihat
+- [X] T069 [P] [US6] Terapkan ukuran sentuh yang nyaman pada seluruh kendali interaktif di `components/ui/`
+- [X] T070 [P] [US6] Terapkan batas lebar baris teks pada `app/(app)/layout.tsx` agar tidak ada baris yang terlalu panjang untuk dibaca pada layar besar
+- [X] T071 [P] [US6] Buat E2E di `tests/e2e/responsive-shell.spec.ts` memakai pembantu T066 untuk kerangka aplikasi dan landing page
+- [X] T072 [P] [US6] Buat E2E di `tests/e2e/keyboard-shell.spec.ts` memakai pembantu T068 untuk kerangka aplikasi dan navigasi
+- [X] T073 [P] [US6] Buat E2E di `tests/e2e/a11y-shell.spec.ts` memakai pembantu T067 untuk kerangka aplikasi dan landing page
 
 **Checkpoint**: Langkah 3, 4, 10, 11, dan 12 pada tabel validasi manual lolos.
 

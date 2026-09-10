@@ -5,10 +5,14 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { Skeleton, SkeletonParagraph } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
@@ -32,6 +36,7 @@ function Row({ children }: { children: React.ReactNode }) {
 export function ShowcaseClient() {
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [selected, setSelected] = useState<string>();
   const toast = useToast();
 
@@ -134,6 +139,35 @@ export function ShowcaseClient() {
             { value: "c", label: "Anggaran", content: <p className="text-ink-soft">Isi anggaran.</p> },
             { value: "d", label: "Daftar bawaan", content: <p className="text-ink-soft">Isi daftar bawaan.</p> },
           ]}
+        />
+      </Section>
+
+      <Section title="Pola halaman">
+        <PageHeader
+          title="Kenangan kita"
+          lede="Hal-hal kecil yang sayang kalau sampai lupa."
+          action={<Button>Tambah kenangan</Button>}
+        />
+        <EmptyState
+          title="Belum ada apa-apa di sini."
+          lede="Mungkin kenangan favorit kita berikutnya belum sempat terjadi."
+          action={<Button variant="secondary">Tambah yang pertama</Button>}
+        />
+        <ErrorState onRetry={() => toast.success("Dicoba lagi.")} />
+      </Section>
+
+      <Section title="Konfirmasi menghapus">
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          trigger={<Button variant="destructive">Hapus kenangan</Button>}
+          title="Hapus kenangan ini?"
+          consequences="Kenangan ini beserta semua fotonya akan hilang, dan tidak bisa dikembalikan."
+          confirmLabel="Ya, hapus"
+          onConfirm={() => {
+            setConfirmOpen(false);
+            toast.success("Kenangannya sudah dihapus.");
+          }}
         />
       </Section>
 
