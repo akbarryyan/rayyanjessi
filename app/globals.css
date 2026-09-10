@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
+/*
+ * Token desain — Our Little Universe
+ *
+ * Seluruh nilai visual pada komponen berasal dari sini (FR-002).
+ * Tailwind 4 mendefinisikan token di CSS, bukan di berkas konfigurasi JavaScript,
+ * sehingga tidak ada `tailwind.config.js` pada proyek ini (research.md R-003).
+ *
+ * Kontras setiap pasangan teks-latar diverifikasi otomatis oleh
+ * tests/unit/tokens-contrast.test.ts terhadap ambang 4.5:1 dan 3:1 (R-007).
+ */
+@theme {
+  /* --- Warna: kertas hangat, tinta lembut --- */
+  --color-canvas: #faf6f1;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f3ece4;
+
+  --color-ink: #2b2621;
+  --color-ink-soft: #5b5147;
+  --color-ink-faint: #6d6358;
+
+  --color-accent: #a04e52;
+  --color-accent-soft: #f5e6e5;
+  --color-accent-ink: #ffffff;
+
+  --color-line: #e3d8cc;
+  --color-line-strong: #90806e;
+
+  --color-positive: #3f6146;
+  --color-positive-soft: #e6efe7;
+  --color-critical: #9a3b32;
+  --color-critical-soft: #f8e7e4;
+
+  --color-focus: #6b4f7a;
+
+  /* --- Tipografi --- */
+  --font-body: var(--font-body-src), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-src), ui-serif, Georgia, serif;
+
+  --text-xs: 0.78rem;
+  --text-sm: 0.885rem;
+  --text-base: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.4rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 4rem;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* --- Jarak --- */
+  --spacing: 0.25rem;
+
+  /* --- Sudut membulat --- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* --- Bayangan: terbatas dan lembut (ui-sections.md §3.2) --- */
+  --shadow-soft: 0 1px 2px rgb(43 38 33 / 0.04), 0 2px 8px rgb(43 38 33 / 0.05);
+  --shadow-lifted: 0 2px 4px rgb(43 38 33 / 0.05), 0 8px 24px rgb(43 38 33 / 0.07);
+
+  /* --- Gerak: pelambatan --- *
+   * Tailwind 4 memiliki namespace --ease-* yang menghasilkan utility ease-*,
+   * tetapi TIDAK memiliki namespace --duration-*. Karena itu nilai durasi
+   * didefinisikan sebagai custom property biasa di :root di bawah, lalu
+   * dirujuk dengan sintaks duration-(--nama). Keduanya tetap satu sumber. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --- Lebar baca --- */
+  --container-prose: 68ch;
+}
+
+/* Lebar maksimum baris teks agar nyaman dibaca di layar besar (FR-034). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  color-scheme: light;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Durasi gerak. Lihat catatan pada blok @theme di atas. */
+  --duration-instant: 90ms;
+  --duration-quick: 160ms;
+  --duration-gentle: 260ms;
+  --duration-slow: 420ms;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fokus selalu terlihat (FR-037). */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * Preferensi kurangi-gerak (FR-030).
+ * Lapisan ini menjangkau transisi CSS dan View Transitions, yang berada di luar
+ * jangkauan penyedia gerak Framer Motion (research.md R-005).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

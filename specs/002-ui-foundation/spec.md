@@ -240,8 +240,14 @@ satu halaman rujukan, lalu memastikan tidak ada dua bagian yang tertukar watakny
 - **FR-010**: Posisi saat ini MUST ditandai jelas pada navigasi, dan penandanya MUST NOT
   bergantung pada warna semata.
 - **FR-011**: Seluruh tujuan MUST dapat dicapai hanya dengan papan ketik.
-- **FR-012**: [NEEDS CLARIFICATION: Bagaimana navigasi pada dokumen ini diselaraskan dengan
-  keputusan bahwa `/` adalah satu landing page panjang berisi semua bagian?]
+- **FR-012**: Navigasi MUST bersifat hibrida terhadap landing page: item yang isinya ringkas
+  MUST mengantar ke section pada `/`, sedangkan item yang membutuhkan ruang penuh MUST mengantar
+  ke halaman tersendiri.
+- **FR-045**: Ketika sebuah item navigasi mengantar ke section pada `/`, perpindahannya MUST
+  membawa pandangan ke section itu dan MUST memperbarui alamat halaman sehingga dapat ditautkan
+  ulang.
+- **FR-046**: Ketika pasangan sedang menggulir landing page, penanda posisi pada navigasi MUST
+  mengikuti section yang sedang terlihat.
 
 #### Pola Halaman Bersama
 
@@ -271,6 +277,52 @@ satu halaman rujukan, lalu memastikan tidak ada dua bagian yang tertukar watakny
 - **FR-024**: Pesan kegagalan MUST NOT memuat nama teknis, kode internal, maupun jejak kesalahan.
 - **FR-025**: Ketika sebuah aksi gagal, kendali yang memicunya MUST kembali ke keadaan semula dan
   alasannya MUST disampaikan.
+
+#### Rancangan Tiap Bagian
+
+Fitur ini mencakup rancangan antarmuka seluruh bagian pada `docs/ui-sections.md` §6–§21. Bagian
+yang data modelnya belum ada dirancang di atas kontrak view-model beserta data contoh, dan
+MUST ditinjau ulang ketika spec domainnya mendarat (lihat Assumptions).
+
+- **FR-047**: Home MUST menampilkan sapaan berdasarkan waktu, nama kedua anggota, relationship
+  counter, pertanyaan harian, perjalanan terdekat beserta hitung mundurnya, memori terbaru, surat
+  terbaru, satu butir Our Future, dan aksi cepat — dengan urutan mengikuti prioritas informasi
+  pada `docs/prd.md` §13.
+- **FR-048**: Our Story MUST menampilkan lini masa kronologis beserta kartu peristiwa yang memuat
+  judul, tanggal, lokasi, deskripsi, gambar sampul, dan jenis peristiwa, ditambah penyaring.
+- **FR-049**: Memories MUST menampilkan galeri responsif bergaya album foto, kartu memori berisi
+  gambar, judul, dan tanggal, serta halaman detail berisi media besar, cerita, dan kaitan ke
+  perjalanan, peristiwa, maupun lagu.
+- **FR-050**: Letters MUST menampilkan kumpulan surat beserta keadaannya, halaman baca tersendiri
+  untuk surat yang sudah tersedia, dan penulis surat yang tampilannya menyerupai kertas.
+- **FR-051**: Open When MUST menampilkan kartu pemicu bergaya amplop, dan membukanya MUST melalui
+  interaksi amplop yang menghormati preferensi kurangi-gerak.
+- **FR-052**: Next Trips MUST menampilkan hero perjalanan dengan gambar sampul, hitung mundur,
+  rentang tanggal, dan navigasi Overview, Itinerary, Budget, serta Checklist yang dapat digulir
+  mendatar di ponsel.
+- **FR-053**: Trip Itinerary MUST menampilkan pemilih hari dan lini masa aktivitas berisi waktu,
+  judul, lokasi, dan perkiraan biaya.
+- **FR-054**: Trip Budget MUST menampilkan batas anggaran, total terpakai, penanda kemajuan, dan
+  rincian per kategori — tanpa gaya dasbor keuangan.
+- **FR-055**: Trip Checklist MUST menampilkan daftar tugas, penanda kemajuan, dan penugasan ke
+  salah satu anggota atau keduanya.
+- **FR-056**: Our Places MUST menampilkan tampilan galeri dan daftar, kartu tempat berisi gambar,
+  nama, alamat, dan tanggal pertama dikunjungi, serta halaman detail.
+- **FR-057**: Our Soundtrack MUST menampilkan kartu lagu berisi sampul, judul, penyanyi, aksi
+  memutar, dan cerita singkat — terasa sebagai jurnal musik, bukan pemutar musik.
+- **FR-058**: Our Future MUST menampilkan butir impian beserta kategori dan status, dan MUST
+  merayakan butir yang tercapai.
+- **FR-059**: Just For Us MUST menampilkan Daily Question, Couple Quiz, dan Who Is More Likely?
+  dengan nada bermain, bukan bersaing.
+- **FR-060**: Our Time MUST menampilkan durasi hubungan sebagai kalimat tenang beserta tanggal
+  mulai, dan MAY menampilkan kartu tonggak.
+- **FR-061**: Important Dates MUST menonjolkan tanggal terdekat beserta hitung mundurnya, dan
+  menampilkan kartu tanggal berisi judul, tanggal, jenis, dan status berulang.
+- **FR-062**: Settings MUST menampilkan pengaturan Relationship dan profil anggota sebagaimana
+  sudah dispesifikasikan fitur 001, dan MAY memakai tampilan yang lebih konvensional dibanding
+  bagian lain.
+- **FR-063**: Bagian yang data modelnya belum ada MUST dirancang di atas kontrak view-model yang
+  eksplisit, sehingga penyambungan ke data sesungguhnya kelak tidak menuntut perancangan ulang.
 
 #### Watak Bagian
 
@@ -359,11 +411,16 @@ dipakai fitur lain.
 
 ## Assumptions
 
-- **Cakupan fitur ini**: fondasi antarmuka yang dipakai bersama — sistem desain, kerangka
-  aplikasi dan navigasi, pola halaman, keadaan antarmuka, gerak, responsif, dan aksesibilitas.
-  Rancangan rinci tiap bagian pada `docs/ui-sections.md` §6–§21 menjadi bahan rujukan bagi spec
-  domainnya masing-masing, bukan pekerjaan fitur ini. Lihat juga [NEEDS CLARIFICATION] pada
-  FR-012.
+- **Cakupan fitur ini (keputusan pemilik produk, 2026-09-10)**: fondasi antarmuka bersama
+  **dan** rancangan antarmuka seluruh bagian pada `docs/ui-sections.md` §6–§21.
+- **UI mendahului data**: dari 15 bagian yang dirancang, hanya Settings dan bagian penghitung
+  waktu yang sudah memiliki data model — keduanya berasal dari fitur 001. Tiga belas bagian
+  lainnya dirancang di atas kontrak view-model beserta data contoh (FR-063). Ketika spec domainnya
+  mendarat, rancangan itu ditinjau ulang dan disambungkan ke data sesungguhnya. Konsekuensi ini
+  diterima pemilik produk dan tercatat pada Complexity Tracking di `plan.md`.
+- **Model navigasi**: hibrida (FR-012). Item yang isinya ringkas mengantar ke section pada
+  landing page `/`; item yang membutuhkan ruang penuh mengantar ke halaman tersendiri. Keputusan
+  landing page pada 2026-09-09 tetap berlaku.
 - **Tumpang tindih dengan fitur 001**: `docs/ui-sections.md` §21.1 dan §21.2 menyebut layar
   pengaturan profil dan relationship. Keduanya sudah dispesifikasikan pada
   `specs/001-relationship-foundation/` (FR-012, FR-019, FR-020 di sana). Fitur ini menyediakan
